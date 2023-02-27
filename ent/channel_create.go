@@ -25,6 +25,20 @@ func (cc *ChannelCreate) SetName(s string) *ChannelCreate {
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *ChannelCreate) SetID(s string) *ChannelCreate {
+	cc.mutation.SetID(s)
+	return cc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *ChannelCreate) SetNillableID(s *string) *ChannelCreate {
+	if s != nil {
+		cc.SetID(*s)
+	}
+	return cc
+}
+
 // Mutation returns the ChannelMutation object of the builder.
 func (cc *ChannelCreate) Mutation() *ChannelMutation {
 	return cc.mutation
@@ -32,6 +46,7 @@ func (cc *ChannelCreate) Mutation() *ChannelMutation {
 
 // Save creates the Channel in the database.
 func (cc *ChannelCreate) Save(ctx context.Context) (*Channel, error) {
+	cc.defaults()
 	return withHooks[*Channel, ChannelMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -57,6 +72,14 @@ func (cc *ChannelCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cc *ChannelCreate) defaults() {
+	if _, ok := cc.mutation.ID(); !ok {
+		v := channel.DefaultID()
+		cc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (cc *ChannelCreate) check() error {
 	if _, ok := cc.mutation.Name(); !ok {
@@ -76,8 +99,13 @@ func (cc *ChannelCreate) sqlSave(ctx context.Context) (*Channel, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Channel.ID type: %T", _spec.ID.Value)
+		}
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -86,8 +114,12 @@ func (cc *ChannelCreate) sqlSave(ctx context.Context) (*Channel, error) {
 func (cc *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Channel{config: cc.config}
-		_spec = sqlgraph.NewCreateSpec(channel.Table, sqlgraph.NewFieldSpec(channel.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(channel.Table, sqlgraph.NewFieldSpec(channel.FieldID, field.TypeString))
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(channel.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -109,6 +141,7 @@ func (ccb *ChannelCreateBulk) Save(ctx context.Context) ([]*Channel, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ChannelMutation)
 				if !ok {
@@ -135,10 +168,6 @@ func (ccb *ChannelCreateBulk) Save(ctx context.Context) ([]*Channel, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

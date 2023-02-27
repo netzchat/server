@@ -204,7 +204,7 @@ func (c *ChannelClient) UpdateOne(ch *Channel) *ChannelUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ChannelClient) UpdateOneID(id int) *ChannelUpdateOne {
+func (c *ChannelClient) UpdateOneID(id string) *ChannelUpdateOne {
 	mutation := newChannelMutation(c.config, OpUpdateOne, withChannelID(id))
 	return &ChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -221,7 +221,7 @@ func (c *ChannelClient) DeleteOne(ch *Channel) *ChannelDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ChannelClient) DeleteOneID(id int) *ChannelDeleteOne {
+func (c *ChannelClient) DeleteOneID(id string) *ChannelDeleteOne {
 	builder := c.Delete().Where(channel.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -238,12 +238,12 @@ func (c *ChannelClient) Query() *ChannelQuery {
 }
 
 // Get returns a Channel entity by its id.
-func (c *ChannelClient) Get(ctx context.Context, id int) (*Channel, error) {
+func (c *ChannelClient) Get(ctx context.Context, id string) (*Channel, error) {
 	return c.Query().Where(channel.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ChannelClient) GetX(ctx context.Context, id int) *Channel {
+func (c *ChannelClient) GetX(ctx context.Context, id string) *Channel {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

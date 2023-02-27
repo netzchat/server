@@ -2,8 +2,22 @@
 
 package ent
 
+import (
+	"github.com/netzchat/server/ent/channel"
+	"github.com/netzchat/server/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	channelMixin := schema.Channel{}.Mixin()
+	channelMixinFields0 := channelMixin[0].Fields()
+	_ = channelMixinFields0
+	channelFields := schema.Channel{}.Fields()
+	_ = channelFields
+	// channelDescID is the schema descriptor for id field.
+	channelDescID := channelMixinFields0[0].Descriptor()
+	// channel.DefaultID holds the default value on creation for the id field.
+	channel.DefaultID = channelDescID.Default.(func() string)
 }

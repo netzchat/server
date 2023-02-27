@@ -3,11 +3,18 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	"github.com/netzchat/server/ent/mixin"
 )
 
 // Channel holds the schema definition for the Channel entity.
 type Channel struct {
 	ent.Schema
+}
+
+func (Channel) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.ObjectIDMixin{},
+	}
 }
 
 // Fields of the Channel.

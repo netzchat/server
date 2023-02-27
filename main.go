@@ -8,10 +8,8 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/netzchat/server/apis/core/v1/corev1connect"
-	"github.com/netzchat/server/apis/test/v1/testv1connect"
 	"github.com/netzchat/server/ent"
 	"github.com/netzchat/server/services/channel"
-	"github.com/netzchat/server/services/test"
 )
 
 func run(ctx context.Context) error {
@@ -26,7 +24,6 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed creating schema resources: %v", err)
 	}
 
-	http.Handle(testv1connect.NewTestServiceHandler(test.New()))
 	http.Handle(corev1connect.NewChannelServiceHandler(channel.New(client)))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
